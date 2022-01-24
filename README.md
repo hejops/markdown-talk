@@ -1,54 +1,37 @@
-# markdown-talk
+# templates
 
-Presentation in markdown using LaTeX Beamer.
+This repository is a fork of
+[markdown-talk](https://github.com/ihrke/markdown-talk) that contains a
+collection of templates for quickly writing presentations (in Markdown) and
+scientific reports (in LaTeX). Modifications have been made to fit my specific
+use cases.
 
-See [markdown-paper](https://github.com/ihrke/markdown-paper) for template for a scientific paper.
+The Makefile details how the translation works. If you are on Linux, simply
+calling `make` in the parent directory will compile the report to a PDF if all
+dependencies are installed. Edit the variables in the Makefile to choose a
+theme (check [this webpage](http://deic.uab.es/~iblanes/beamer_gallery/) for a
+gallery).
 
-*NOTE*: [pandoc](http://pandoc.org/) version > 1.16 is recommended because image-attributes are not available before that version.
+Although writing in Markdown is (in my opinion) much faster and less tedious
+than trying to set up beamer autocompletion in LaTeX, the Pandoc conversion
+still has some minor quirks, so fiddling with the .tex output will often be
+necessary. To avoid unnecessary trouble, avoid using columns on slides with
+citations.
 
-
-The Makefile details how the translation works. If you are on linux, simply calling make in the parent directory will compile the report to a pdf-format if all dependencies are installed. Edit the variables in the Makefile to choose a theme (check [this webpage](http://deic.uab.es/~iblanes/beamer_gallery/) for a gallery).
-
-
-## Usage
-
-1. Install the dependencies
-
-    ~~~{bash}
-    sudo apt-get install pandoc pandoc-citeproc
-    pip install pandoc-fignos
-    ~~~
-2. check that pandoc has version>=1.16 (otherwise install from other source)
-
-    ~~~{bash}
-    pandoc -v
-    ~~~
-2. Clone this repository
-
-    ~~~{bash}
-    git clone https://github.com/ihrke/markdown-talk.git
-    ~~~
-3. Edit `Makefile` to choose a theme
-4. Write talk in `talk.md`, refs in `bibliography.bib`, compile with `make`
-
-There are some tips in the `talk.md` file to get you started.
-
-NOTE: `guard.sh` is a little tool that calls `make` whenever something changes in the directory (I find it useful for updating the PDF automatically whenever I hit safe)
-
-## Editor
-
-I use the [atom](http://atom.io) editor using the [markdown-preview-enhanced](https://github.com/shd101wyy/markdown-preview-enhanced)-package.
-That way, I get an immediate visual update of the markdown I am writing (though it is not the final design, of course).
-
-- Formatting the markdown-tables: https://atom.io/packages/markdown-table-formatter
+`guard.sh` is a script that calls `make` whenever any changes in the directory
+are written. I personally have no need for it because I have my editor
+recompile automatically after every write.
 
 ## Dependencies
 
-- [pandoc](http://pandoc.org/)
+- [pandoc (version >= 1.16)](http://pandoc.org/)
 - [pandoc-fignos](https://github.com/tomduck/pandoc-fignos)
 - [pandoc-citeproc](https://github.com/jgm/pandoc-citeproc)
 - a [latex](https://www.latex-project.org/)-distribution (e.g., [texlive](https://www.tug.org/texlive/)) including [bibtex](http://www.bibtex.org/)
-- [latex-beamer](https://www.google.no/url?sa=t&rct=j&q=&esrc=s&source=web&cd=3&cad=rja&uact=8&ved=0ahUKEwiSidXzjYHLAhUjnXIKHRUEA5QQFggzMAI&url=http%3A%2F%2Fwww.ctan.org%2Ftex-archive%2Fmacros%2Flatex%2Fcontrib%2Fbeamer%2Fdoc%2Fbeameruserguide.pdf&usg=AFQjCNE2AQ9ERMbIUIUS-wzhXGtX5ozs0w&sig2=ByUFa0FTBmk44RWWL7UJEA)
+- [latex-beamer](https://ctan.org/pkg/beamer?lang=en)
+
+_NOTE_: Pandoc 1.16 is recommended because image-attributes are not available
+before that version.
 
 ---
 

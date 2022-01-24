@@ -1,0 +1,141 @@
+\documentclass[12pt,a4paper]{article}
+% \usepackage[scanall]{psfrag}		% https://tex.stackexchange.com/a/437529
+% \usepackage[utf8]{inputenc}
+% \usepackage[version=4]{mhchem}
+% \usepackage{auto-pst-pdf}
+% \usepackage{chemformula}		% use this if chemical formulae need to be written
+% \usepackage{hyperref}
+% \usepackage{symbol}
+% https://r2src.github.io/top10fonts/
+% https://www.overleaf.com/learn/latex/font_typefaces?nocdn=true
+\usepackage[ddmmyyyy]{datetime} \renewcommand{\dateseparator}{.}
+\usepackage[labelfont=bf]{caption}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage[nottoc]{tocbibind}
+\usepackage[parfill]{parskip}
+\usepackage[raggedright]{titlesec}	% https://tex.stackexchange.com/a/195901
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{lipsum}
+\usepackage{newfloat}			% https://tex.stackexchange.com/a/275193
+\usepackage{setspace}
+\usepackage{times}
+
+% typically schemes are required for reactions
+\DeclareFloatingEnvironment[		% chemscheme and chemmacros don't install properly
+  fileext = los,
+  listname = {List of Schemes},
+  name = Scheme
+]{scheme}
+
+% https://tex.stackexchange.com/a/324181
+% https://bastian.rieck.ru/blog/posts/2016/biblatex_superscript_citations/
+\usepackage[backend=biber, citestyle=numeric, bibstyle=chem-acs, sorting=none, autocite=superscript]{biblatex}
+\addbibresource{bib.bib}
+
+% this adds square brackets, but does not allow grouping, i.e. [3],[4],[5] -- this looks ugly as hell
+% HACKY WORKAROUND: ~$^[$\autocite{Mehta_1999,Schulz_2001,Piers_2001}$^]$.
+% \DeclareCiteCommand{\supercite}[\mkbibsuperscript]{
+%     \iffieldundef{prenote}
+%     {}
+%     {\BibliographyWarning{Ignoring prenote argument}}%
+%     \iffieldundef{postnote}
+%     {}
+%     {}
+%   }
+%   {\bibopenbracket%
+%    \usebibmacro{citeindex}%
+%    \usebibmacro{cite}%
+%    \usebibmacro{postnote}%
+%    \bibclosebracket}
+%   {\supercitedelim}
+%   {}
+
+% https://en.wikibooks.org/wiki/LaTeX/Macros#New_commands
+\begin{document}
+
+% only 1 optional arg allowed by default
+\newcommand\Fig[4][]{\begin{#4}[H]\centering\includegraphics{draw/#2.eps}\caption{#3.#1}\label{fig:#2}\end{#4}}
+\newcommand\degc{~$^\circ$C}
+\newcommand\etal{\textit{et al}.}
+\newcommand\fig[4][]{\begin{#4}[!ht]\centering\includegraphics{draw/#2.eps}\caption{#3.#1}\label{fig:#2}\end{#4}}
+\newcommand\hackcite[1]{$^[$\autocite{#1}$^]$}		% yuck
+\newcommand\m{($-$)}
+\newcommand\p{(+)}
+
+\newcommand\expt[2] {
+\subsection*{#1}
+\begin{figure}[!ht]
+	\centering
+	\includegraphics{draw/#2.eps}
+\end{figure}}
+
+\pagenumbering{gobble}
+\onehalfspacing{}
+
+\title{TITLE}
+\author{AUTHOR}
+
+% custom title format (instead of \maketitle)
+% https://en.wikibooks.org/wiki/LaTeX/Title_Creation#A_practical_example
+% https://tex.stackexchange.com/a/10131
+
+\makeatletter
+\begin{titlepage}
+	\centering
+	% \includegraphics[width=0.15\textwidth]{example-image-1x1}\par\vspace{1cm}
+	{\scshape\LARGE INSTITUTE \par} \vspace{1cm}
+	% {\scshape\Large Final year project\par} \vspace{1.5cm}
+	{\Large\bfseries \@title{}	\par} \vspace{2cm}
+	% {\Large \@author	\par} \vfill
+	supervised by \par
+	{\large Professor <++>} \par
+	and \par
+	{\large <++>} \par
+	DEPARTMENT \par
+	\vfill
+	submitted by \par
+	{\Large \@author{} \textsc{NAME}} \par
+	on \par
+	\Large \today
+\end{titlepage}
+
+\newpage
+
+\section*{Abstract}
+\lipsum[1-1]
+
+\newpage
+
+\tableofcontents
+% \addcontentsline{toc}{section}{References}
+
+\newpage
+
+\pagenumbering{arabic}
+
+\section{Introduction}
+
+\section{Results and discussion}
+
+\section{Conclusion}
+
+\section{Experimental section}
+
+\newpage
+
+% https://texblog.org/2013/04/29/latex-table-of-contents-list-of-figurestables-and-some-customizations/
+\listoffigures
+\listofschemes{}
+\listoftables
+
+\newpage
+
+% https://tex.stackexchange.com/a/325853
+\printbibliography[heading=bibintoc, title={References}]
+
+\end{document}
