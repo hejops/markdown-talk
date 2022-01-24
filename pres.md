@@ -1,26 +1,28 @@
 ---
-title: <++>
+title: "<++>"
 author: <++>
 shortauthor: <++>
 date: <++>
 institute: <++>
 instituteshorthand: <++>
-toc: true
+toc: false
 header-includes:
   - \renewenvironment{quote}{\begin{center}}{\end{center}}
 output:
   beamer_presentation:
-    toc: true
+    toc: false
     keep_tex: true
     slide_level: 1
     theme: "templates/amsterdam.beamer"
     highlight: tango
 ...
+
 <!-- prettier-ignore-end -->
 <!-- for an explanation of the syntax, refer to the original file: -->
 <!-- https://raw.githubusercontent.com/ihrke/markdown-talk/master/talk.md -->
 
 # Outline
+
 1. <++>
 1. <++>
 1. <++>
@@ -46,7 +48,8 @@ pause
 > Centered text
 
 # <++>
-- reference [@Weininger_1988]
+
+- reference [@Foobar_0000]
 
 # <++>
 
@@ -64,6 +67,7 @@ second column
 ::::::::::::::
 
 # Conclusion
+
 1. <++>
 1. <++>
 1. <++>
