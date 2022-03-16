@@ -1,13 +1,29 @@
 \documentclass[12pt,a4paper]{article}
+
+% disable warnings about ``Generic hook 'package/after/fontspec' is deprecated''
+% https://www.latex-project.org/news/latex2e-news/ltnews34.pdf
+% https://tex.stackexchange.com/questions/623542/generic-hook-name-is-deprecated-warning-after-update#comment1556706_623548
+\ExplSyntaxOn{} \msg_redirect_name:nnn { hooks } { generic-deprecated } { none } \ExplSyntaxOff
+
+% packages {{{
+
+% disable link highlighting; should be placed before all other packages
+\usepackage[hidelinks]{hyperref} % \renewcommand*{\figureautorefname}{Fig.}
+
 % \usepackage[scanall]{psfrag}		% https://tex.stackexchange.com/a/437529
+% \usepackage[smartEllipses]{markdown}	% kind of pointless since it doesn't do tables; just use pandoc
 % \usepackage[utf8]{inputenc}
 % \usepackage[version=4]{mhchem}
 % \usepackage{auto-pst-pdf}
 % \usepackage{chemformula}		% use this if chemical formulae need to be written
-% \usepackage{hyperref}
+% \usepackage{mwe}
+% \usepackage{neuralnetwork}	% has a bunch of dependencies, beware
 % \usepackage{symbol}
+% \usepackage{tikz}
+% \usetikzlibrary{positioning}
 % https://r2src.github.io/top10fonts/
 % https://www.overleaf.com/learn/latex/font_typefaces?nocdn=true
+\usepackage[activate={true,nocompatibility},final,tracking=true,kerning=true,factor=1100,stretch=10,shrink=10]{microtype}
 \usepackage[ddmmyyyy]{datetime} \renewcommand{\dateseparator}{.}
 \usepackage[labelfont=bf]{caption}
 \usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
@@ -17,25 +33,50 @@
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{bookmark}
 \usepackage{booktabs}
+\usepackage{comment}
+\usepackage{etoolbox}
 \usepackage{float}
 \usepackage{graphicx}
 \usepackage{lipsum}
-\usepackage{newfloat}			% https://tex.stackexchange.com/a/275193
-\usepackage{setspace}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{nameref}
+\usepackage{pgffor}
+\usepackage{setspace}	\captionsetup[table]{font={stretch=1.2}}	% mimic onehalfspacing in tables
+\usepackage{stackengine}
+\usepackage{subcaption}	\renewcommand{\thesubfigure}{\Alph{subfigure}}
 \usepackage{times}
+\usepackage{verbatim}
+\usepackage{xparse}
 
-% typically schemes are required for reactions
-\DeclareFloatingEnvironment[		% chemscheme and chemmacros don't install properly
-  fileext = los,
-  listname = {List of Schemes},
-  name = Scheme
-]{scheme}
+% reduce font size of verbatiminput
+\makeatletter
+\patchcmd{\verbatim@input}{\@verbatim}{\scriptsize\@verbatim}{}{}
+\makeatother
 
-% https://tex.stackexchange.com/a/324181
-% https://bastian.rieck.ru/blog/posts/2016/biblatex_superscript_citations/
-\usepackage[backend=biber, citestyle=numeric, bibstyle=chem-acs, sorting=none, autocite=superscript]{biblatex}
-\addbibresource{bib.bib}
+% \usepackage{newfloat}			% https://tex.stackexchange.com/a/275193
+% % typically schemes are required for reactions
+% % chemscheme and chemmacros don't install properly
+% \DeclareFloatingEnvironment[
+% fileext = los,
+% listname = {List of Schemes},
+% name = Scheme
+% ]{scheme}
+
+% % buggy on ubuntu
+% % https://tex.stackexchange.com/a/324181
+% % https://bastian.rieck.ru/blog/posts/2016/biblatex_superscript_citations/
+% https://tex.stackexchange.com/a/3874
+\usepackage[%
+autocite=superscript,%
+backend=biber,%
+bibstyle=chem-acs,%
+citestyle=numeric-comp,%
+sorting=none,%
+]{biblatex}
+% \addbibresource{../papers/bib.bib}
 
 % this adds square brackets, but does not allow grouping, i.e. [3],[4],[5] -- this looks ugly as hell
 % HACKY WORKAROUND: ~$^[$\autocite{Mehta_1999,Schulz_2001,Piers_2001}$^]$.
@@ -57,85 +98,255 @@
 
 % https://en.wikibooks.org/wiki/LaTeX/Macros#New_commands
 \begin{document}
+% }}}
 
-% only 1 optional arg allowed by default
-\newcommand\Fig[4][]{\begin{#4}[H]\centering\includegraphics{draw/#2.eps}\caption{#3.#1}\label{fig:#2}\end{#4}}
-\newcommand\degc{~$^\circ$C}
-\newcommand\etal{\textit{et al}.}
-\newcommand\fig[4][]{\begin{#4}[!ht]\centering\includegraphics{draw/#2.eps}\caption{#3.#1}\label{fig:#2}\end{#4}}
-\newcommand\hackcite[1]{$^[$\autocite{#1}$^]$}		% yuck
-\newcommand\m{($-$)}
-\newcommand\p{(+)}
-
-\newcommand\expt[2] {
-\subsection*{#1}
-\begin{figure}[!ht]
-	\centering
-	\includegraphics{draw/#2.eps}
-\end{figure}}
-
+% cover page {{{
 \pagenumbering{gobble}
-\onehalfspacing{}
 
 \title{TITLE}
-\author{AUTHOR}
+
+\onehalfspacing{}
+
+\author{Neil Joseph Lecaros}
 
 % custom title format (instead of \maketitle)
 % https://en.wikibooks.org/wiki/LaTeX/Title_Creation#A_practical_example
 % https://tex.stackexchange.com/a/10131
 
-\makeatletter
-\begin{titlepage}
+% \makeatletter
+% \begin{titlepage}
+% 	\centering
+% 	% \includegraphics[width=0.15\textwidth]{example-image-1x1}\par\vspace{1cm}
+% 	{\scshape\LARGE{} Technische Universität München \par} \vspace{1cm}
+% 	{\Large\bfseries{} \@title{}	\par} \vspace{2cm}
+% 	% {\Large{} \@author	\par} \vfill
+% 	supervised by \par
+% 	{\large{} Professor Dr.\ Angela \textsc{Casini}} \par
+% 	and \par
+% 	{\large{} Dr.\ Darren \textsc{Wragg}} \par
+% 	Lehrstuhl für Medizinische und Bioanorganische Chemie \par
+% 	\vfill
+% 	submitted by \par
+% 	{\Large{} \@author{} \textsc{Yap}} \par
+% 	on \par
+% 	\Large{} \today
+% \end{titlepage}
+
+% }}}
+
+% https://latex.org/forum/viewtopic.php?p=15204&sid=3d7915621c83a1ee363343696ae7c45e#p15204
+\newcounter{bar}
+\newcommand{\cpd}{%
+	\stepcounter{bar}%
+	\textbf{\thebar}%
+}
+
+% % simple macros {{{
+% % only 1 optional arg allowed by default, and it must be the first (#1)
+% \newcommand\A{Å}
+% \newcommand\Kjm{kJ mol$^{-1}$}
+% \newcommand\Md{MetaD}
+% \newcommand\Nc{Non-canonical}
+% \newcommand\au{\textbf{AuTMX$_2$}}
+% \newcommand\bound[1]{\textbf{B#1}}
+% \newcommand\bp{backpropagation}
+% \newcommand\cc{C$\cdot$C$^+$}
+% \newcommand\ckone{\mbox{\textit{C-KIT1}}}
+% \newcommand\cktwo{\mbox{\textit{C-KIT2}}}
+% \newcommand\ck{\textit{C-KIT}}
+% \newcommand\dG{$\Delta$ G}
+% \newcommand\degc{~$^\circ$C}
+% \newcommand\dkau{\mbox{\textbf{dist K--Au}}}
+% \newcommand\dlda{Deep-LDA}
+% \newcommand\done{$d_1$}
+% \newcommand\dtwo{$d_2$}
+% \newcommand\etal{et al.}
+% \newcommand\hackcite[1]{$^[$\autocite{#1}$^]$}		% yuck
+% \newcommand\kjm[1]{#1~kJ~mol$^{-1}$}
+% \newcommand\md{metaD}
+% \newcommand\m{($-$)}
+% \newcommand\nc{non-canonical}
+% \newcommand\ps{$\pi$-stack}
+% \newcommand\p{(+)}
+% \newcommand\unbound[1]{\textbf{U#1}}
+% \newcommand\vdw{Van der Waals}
+
+\newcommand\expt[2] {
+	\subsection*{#1}
+	\begin{figure}[!ht]
+		\centering
+		\includegraphics{draw/#2.eps}
+	\end{figure}}
+% }}}
+
+% advanced macros {{{
+% https://tex.stackexchange.com/a/29975
+% https://ctan.space-pro.be/tex-archive/macros/latex/contrib/l3packages/xparse.pdf
+% http://www.peteryu.ca/tutorials/publishing/latex_captions
+% https://www.texdev.net/2010/05/23/from-newcommand-to-newdocumentcommand/
+% \NewDocumentCommand{\kjm}{ R[]{} }{ {$-$#1} kJ mol$^{-1}$ }
+
+\NewDocumentCommand{\Fig}{
+	O{example-image}	% 1 image path
+	% O{scale=1}		% 2 scale / width
+	O{width=0.8\textwidth}	% 2 scale / width -- for eps, use scale=1
+	% TODO IfBooleanTF
+	O{}			% 3 extra text/graphics
+	O{!ht}			% 4 positioning
+	O{figure}		% 5 environment (almost always figure)
+	m			% 6 label
+	m			% 7 caption
+}{
+	\begin{#5}[#4]
 	\centering
-	% \includegraphics[width=0.15\textwidth]{example-image-1x1}\par\vspace{1cm}
-	{\scshape\LARGE INSTITUTE \par} \vspace{1cm}
-	% {\scshape\Large Final year project\par} \vspace{1.5cm}
-	{\Large\bfseries \@title{}	\par} \vspace{2cm}
-	% {\Large \@author	\par} \vfill
-	supervised by \par
-	{\large Professor <++>} \par
-	and \par
-	{\large <++>} \par
-	DEPARTMENT \par
-	\vfill
-	submitted by \par
-	{\Large \@author{} \textsc{NAME}} \par
-	on \par
-	\Large \today
-\end{titlepage}
+	\includegraphics[{#2}]{#1}
+	{#3}
+	\caption{#7.}
+	\label{fig:#6}
+	\end{#5}
+}
+
+\NewDocumentCommand{\Figs}{
++O{example-image}	% 1 image path / contents
+O{!ht}			% 2 positioning
+m			% 3 label
+m			% 4 caption
+}{
+% TODO: incompatible with par, so >1 row not allowed
+\begin{figure}[#2]
+	\centering
+	#1
+	\caption{#4}
+	\label{fig:#3}
+\end{figure}
+}
+
+\NewDocumentCommand{\Sub}{
+	O{example-image}	% 1 image path
+	O{0.8}			% 2 image width, in terms of textwidth; note: textwidth is aware of the space it is given by subfig
+	O{0.4}			% 3 subfig width, in terms of textwidth
+	O{b}			% 4 subfig positioning
+	m			% 5 label
+	m			% 6 caption
+}{
+	\begin{subfigure}[#4]{#3\textwidth}
+		\centering
+		\includegraphics[width=#2\textwidth]{#1}
+		\caption{#6.}
+		\label{fig:#5}
+	\end{subfigure}
+}
+
+\NewDocumentCommand{\SubChemdraw}{
+	O{example-image}	% 1 image path
+	O{0.4}			% 2 subfig width, in terms of textwidth
+	O{b}			% 3 subfig positioning
+	m			% 4 label
+	m			% 5 caption
+}{
+	\begin{subfigure}[#3]{#2\textwidth}
+		\centering
+		\includegraphics[scale=1]{#1}
+		\caption{#5}	% no period!
+		\label{fig:#4}
+	\end{subfigure}
+}
+
+\NewDocumentCommand{\Network}{
+	m			% 1 neural network code
+	O{!ht}			% 2 positioning
+	O{figure}		% 3 environment (almost always figure)
+	m			% 4 label
+	m			% 5 caption
+}{
+	\begin{#3}[#2]
+	\centering
+	#1
+	\caption{#5.}
+	\label{fig:#4}
+	\end{#3}
+}
+
+% table is the environment, tabular is the actual table
+% 1. label (without tab:)
+% 2. caption
+% 3. columns
+% 4. content (can be \input)
+% 5. position (optional, defaults to !ht)
+% apparently, captions are placed above table by default
+% \captionsetup[table]{position=bottom}
+\NewDocumentCommand{\Table}{
+	m
+	m
+	m
+	m
+	O{!ht}}{
+	\begin{table}[#5]
+		\centering
+		\caption{#2.}
+		\begin{tabular}{#3}
+			\toprule
+			#4
+			\bottomrule
+		\end{tabular}
+		\label{tab:#1}
+	\end{table}
+}
+
+% columns and position are defined in external tex (pandoc)
+% pandoc always uses longtable, which i change to tabular
+% shared arg for input and label is convenient, but requires external file to be placed in current dir
+% label must always come after caption -- https://tex.stackexchange.com/a/279704
+\NewDocumentCommand{\OutTable}{m m m}{
+	\begin{table}[!ht]
+		\centering
+		\caption{#3.}
+		\input{#2}
+		\label{tab:#1}
+	\end{table}
+}
+
+% }}}
 
 \newpage
 
 \section*{Abstract}
-\lipsum[1-1]
+
+\lipsum[1]
+
+% \section*{Acknowledgements}
+% \input{../ack.txt}
 
 \newpage
-
 \tableofcontents
-% \addcontentsline{toc}{section}{References}
-
 \newpage
+
+% \addcontentsline{toc}{section}{References}
 
 \pagenumbering{arabic}
 
-\section{Introduction}
+% https://tex.stackexchange.com/a/250
+% \include{filename} gets you the speed bonus, but it also can't be nested,
+%         can't appear in the preamble, and forces page breaks around the
+%         included text.
 
-\section{Results and discussion}
+% \include{chapter}
 
-\section{Conclusion}
-
-\section{Experimental section}
-
-\newpage
-
-% https://texblog.org/2013/04/29/latex-table-of-contents-list-of-figurestables-and-some-customizations/
-\listoffigures
-\listofschemes{}
-\listoftables
-
-\newpage
+\section{Section}
 
 % https://tex.stackexchange.com/a/325853
-\printbibliography[heading=bibintoc, title={References}]
+% TODO: abbreviate journal names (again)
+% bibnumbered > bibintoc
+
+% \newpage
+% \printbibliography[heading=bibnumbered, title={References}]
+% \newpage
+
+% \include{appendix}
+
+% % https://texblog.org/2013/04/29/latex-table-of-contents-list-of-figurestables-and-some-customizations/
+% \listoffigures
+% % \listofschemes{}
+% \listoftables
 
 \end{document}
