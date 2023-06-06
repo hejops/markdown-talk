@@ -249,17 +249,18 @@ $endif$
 \bibliographytrue
 \bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
 \end{frame}
-
 $endif$
 $endif$
 
-$if(biblatex)$
-\begin{frame}[allowframebreaks]{$biblio-title$}
-\bibliographytrue
-\printbibliography[heading=none]
-\end{frame}
+% to disable refs, comment out this section
 
-$endif$
+% $if(biblatex)$
+% \begin{frame}[allowframebreaks]{$biblio-title$}
+% \bibliographytrue
+% \printbibliography[heading=none]
+% \end{frame}
+% $endif$
+
 $for(include-after)$
 $include-after$
 
