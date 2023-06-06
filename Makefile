@@ -22,29 +22,58 @@ all: $(TEX_FILES) $(PDF_FILES)
 	# perl is a godawful command
 	-perl -i -an -e "s|^\\\(.*biblatex.*)|\\\usepackage[backend=biber, citestyle=numeric, bibstyle=chem-acs, sorting=none, maxcitenames=1]{biblatex}|; print" $(basename $<).tex
 	# -perl -i -ane "s|^\\\(.*biblatex.*)|\\\usepackage[backend=biber, citestyle=numeric, bibstyle=chem-acs, sorting=none, maxcitenames=1]{biblatex}|; print" $(basename $<).tex
+	
 	# remove empty slides
 	# -0777 needed for multiline replace
 	-perl -0777 -i -an -e "s|\\\begin{frame}\n\\\end{frame}||; print" $(basename $<).tex
-	-perl -0777 -i -an -e "s|\\\begin{frame}\[allowframebreaks\]{References}\n\\\protect\\\hypertarget{references}{}\n\\\end{frame}||; print" $(basename $<).tex
+	-perl -0777 -i -an -e \
+		"s|\\\begin{frame}\[allowframebreaks\]{References}\
+	\\n\\\protect\\\hypertarget{references}{}\n\\\end{frame}||; print" $(basename $<).tex
+
 	# citations on footnote of every slide they appear
 	# citations on column slides are to be avoided, as footnotes become abc instead of 123
 	-sed -i -r "s|\\\autocite\{|\\\footfullcite\{|g" $(basename $<).tex
+
 	# small footnote
 	-sed -i "/\\\begin{document}/i \\\\\setbeamerfont{footnote}{size=\\\tiny}" $(basename $<).tex
+
 	# \setbeamerfont{footnote}{size=\tiny}
+	
 	# insert headline after begin document
 	# yes, those are FIVE consecutive backslashes, don't ask me why
-	-sed -i "/\\\begin{document}/i \\\\\setbeamertemplate{headline}{\\\hspace*{\\\fill}\\\includegraphics[width=.08\\\linewidth]{templates/tum}}" $(basename $<).tex
+	-sed -i "/\\\begin{document}/i \
+	\\\\\setbeamertemplate{headline}{\\\hspace*{\\\fill}\\\includegraphics[width=.08\\\linewidth]{templates/tum}}" \
+		$(basename $<).tex
+
 	-pdflatex $(TEX_FLAGS) $(basename $<)
+
+	# necessary to get bib (and slide numbers) right
 	-biber $(basename $<)
 	-pdflatex $(TEX_FLAGS) $(basename $<)
+
 	-rm -f $(basename $<).aux $(basename $<).out $(basename $<).fls $(basename $<).bbl $(basename $<).vrb $(basename $<).nav $(basename $<).bcf $(basename $<).toc $(basename $<).snm $(basename $<).run.xml $(basename $<).blg
 
+
 %.tex: %.md $(TEMPLATE_FILES) $(BIBLIOGRAPHY)
+
 	#$(PANDOC) -s -S -t beamer $< -V theme:$(THEME) -V colortheme:$(COLORTHEME) --filter pandoc-citeproc --bibliography $(BIBLIOGRAPHY) --template $(TEMPLATE) -o $@
 	# bib style still not acs
 	# https://github.com/citation-style-language/styles/blob/master/american-chemical-society.csl
-	$(PANDOC) -s -t beamer $< --slide-level=1 -V theme:$(THEME) -V colortheme:$(COLORTHEME) --biblatex --csl=american-chemical-society.csl -V biblio-title:References --bibliography $(BIBLIOGRAPHY) --template $(TEMPLATE) -o $@
+
+	# TODO: if BIBLIOGRAPHY empty, modify amsterdam.beamer directly
+	$(PANDOC) \
+		--biblatex \
+		--bibliography $(BIBLIOGRAPHY) \
+		--csl=american-chemical-society.csl \
+		--slide-level=1 \
+		--template $(TEMPLATE) \
+		-V biblio-title:References \
+		-V colortheme:$(COLORTHEME) \
+		-V theme:$(THEME) \
+		-o $@ \
+		-s \
+		-t beamer $<
+
 
 watch: $(MD_FILES) $(BIBLIOGRAPHY)
 	fswatch -o $^ | xargs -n1 -I{} make
